@@ -20,7 +20,7 @@ namespace fromAccesToPostgress
             DbProviderFactory factory = DbProviderFactories.GetFactory("System.Data.OleDb");
             DbConnection connection = factory.CreateConnection();
             DataTable userTables = null;
-           
+            DataTable table = null; 
 
             using (connection) // ??? 
             {
@@ -33,10 +33,9 @@ namespace fromAccesToPostgress
                 // Get list of user tables
                 userTables = connection.GetSchema("Tables", restrictions); // названия пользовательских таблиц
 
-                DataTable table = connection.GetSchema("Columns"); // Comming soon
+                table = connection.GetSchema("Columns"); // Comming soon
 
                 // Display the contents of the table.  
-                DisplayData(table); // Вывод на экран
                 Console.WriteLine("Press any key to continue.");
                 Console.ReadKey();
             }
@@ -45,40 +44,71 @@ namespace fromAccesToPostgress
                 tableNames.Add(userTables.Rows[i][2].ToString());
             for (int i = 0; i < userTables.Rows.Count; i++)
                 Console.WriteLine(userTables.Rows[i][2].ToString());
-            //foreach (DataRow row in data_table.Rows)
-            //{
-            //    var column_name = row["COLUMN_NAME"].ToString();
-            //    var data_type = row["DATA_TYPE"].ToString();
-            //    var ordinal_pos = row["ORDINAL_POSITION"].ToString();
-
-            //    //Console.WriteLine("====");
-            //    //Console.WriteLine("Столбец: " + column_name);
-            //    //Console.WriteLine("Тип данных: " + data_type);
-            //    //Console.WriteLine("позиция по порядку: " + ordinal_pos);
-            //    //Console.WriteLine("====");
-
-
-            //}
-
-
+            List<string> answer = Find(table , tableNames); // Вывод на экран
+           //    foreach (var i in answer)
+             //   Console.WriteLine(i); 
         }
 
-        private static void DisplayData(DataTable table)
+        private static List<string> Find(DataTable table , List<string> tableList)
         {
-            string text = "TablDogovor"; 
+            string text = null;
+            string convetedStringToPostgre = "";
+            string curentTableName = null;
+            List<string> answer = new List<string>(); 
+            string lastTableName = "";
+            int k = 0; 
             for(int i = 0; i<table.Rows.Count; i++)
             {
-                if (table.Rows[i][table.Columns[2]].ToString() == text)
+
+                curentTableName = table.Rows[i][table.Columns[2]].ToString();
+                if(curentTableName != lastTableName && convetedStringToPostgre != "" && lastTableName[0] == 'T')
                 {
-                    foreach (DataColumn col in table.Columns)
-                        Console.WriteLine("{0} = {1}", col.ColumnName, table.Rows[i][col]);
-                    Console.WriteLine("============================");
+                    k++;
+                    Console.WriteLine(k);
+                    answer.Add(convetedStringToPostgre);
+                    Console.WriteLine(lastTableName); 
+                    Console.WriteLine(convetedStringToPostgre);
+                    Console.WriteLine();
+                    Console.WriteLine(); 
+                    convetedStringToPostgre = "";
+                }
+                if (tableList.Contains(curentTableName)) 
+                {
+                   convetedStringToPostgre += table.Rows[i][table.Columns[3]].ToString() + ' ' + Converter(table.Rows[i][table.Columns[11]].ToString()) + ','; 
+                   //  foreach (DataColumn col in table.Columns)
+                   //    Console.WriteLine("{0} = {1}", col.ColumnName, table.Rows[i][col]);
+                   // Console.WriteLine(table.Rows[i][table.Columns[11]].ToString()); 
+                   
                 }
                 else
                     continue;
+                lastTableName = curentTableName; 
              }
 
-            /*
+            return answer;
+            
+        }
+
+        static Dictionary<string, string> typeDictionary = new Dictionary<string, string>() {
+                                                                                           { "130", "text" },
+                                                                                           { "3", "integer" },
+                                                                                           { "11", "boolean" },
+                                                                                           { "2", "smallint" },
+                                                                                           { "7", "date" },
+                                                                                           { "5", "double precision" }
+                                                                                         };
+        static string Converter(string accessType)
+        {
+
+            return typeDictionary[accessType];
+        }
+
+    }
+}
+
+
+
+/*
             foreach (DataRow row in table.Rows)
             {
 
@@ -89,15 +119,3 @@ namespace fromAccesToPostgress
                 Console.WriteLine("============================");
             }
             */
-        }
-
-        static string Converter(string accessType)
-        {
-
-            string postgresType = " ";
-
-            return postgresType;
-        }
-
-    }
-}
