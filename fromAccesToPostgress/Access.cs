@@ -41,12 +41,20 @@ namespace fromAccesToPostgress
             }
             List<string> tableNames = new List<string>();
             for (int i = 0; i < userTables.Rows.Count; i++)
+                if(userTables.Rows[i][2].ToString()[0] == 'T')
                 tableNames.Add(userTables.Rows[i][2].ToString());
+
+
+
             for (int i = 0; i < userTables.Rows.Count; i++)
-                Console.WriteLine(userTables.Rows[i][2].ToString());
+                if (userTables.Rows[i][2].ToString()[0] == 'T')
+                    Console.WriteLine(userTables.Rows[i][2].ToString());
             List<string> answer = Find(table , tableNames); // Вывод на экран
-           //    foreach (var i in answer)
-             //   Console.WriteLine(i); 
+           
+            for(int i = 0; i<userTables.Rows.Count; i++)
+            {
+                Postgres.TableCreate(answer[i], userTables.Rows[i][2].ToString()); 
+            }
         }
 
         private static List<string> Find(DataTable table , List<string> tableList)

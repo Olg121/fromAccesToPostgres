@@ -52,7 +52,7 @@ namespace fromAccesToPostgress
 
         }
 
-        static public void TableCrate(string tableName, string columns)
+        static public void TableCreate(string tableName, string columns)
         {
             NpgsqlCommand createTbl = new NpgsqlCommand("create table " + tableName + " ( " + columns + ");", npgSqlConnection);
             npgSqlConnection.Open();
