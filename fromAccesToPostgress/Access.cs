@@ -24,7 +24,7 @@ namespace fromAccesToPostgress
 
             using (connection) // ??? 
             {
-                connection.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=c:\\db.mdb;"; // Строка подключения 
+                connection.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=db.mdb;"; // Строка подключения 
                 string[] restrictions = new string[4]; // параметры ограничения 
                 restrictions[3] = "Table"; // Только таблицы пользователя 
 
@@ -34,7 +34,7 @@ namespace fromAccesToPostgress
                 userTables = connection.GetSchema("Tables", restrictions); // названия пользовательских таблиц
 
                 table = connection.GetSchema("Columns"); // Comming soon
-
+                var table1 = connection.GetSchema("Indexes"); 
                 // Display the contents of the table.  
                 Console.WriteLine("Press any key to continue.");
                 Console.ReadKey();
@@ -51,10 +51,14 @@ namespace fromAccesToPostgress
                     Console.WriteLine(userTables.Rows[i][2].ToString());
             List<string> answer = Find(table , tableNames); // Вывод на экран
            
-            for(int i = 0; i<userTables.Rows.Count; i++)
+            for(int i = 0; i<tableNames.Count; i++)
             {
-                Postgres.TableCreate(answer[i], userTables.Rows[i][2].ToString()); 
+                Postgres.TableCreate(answer[i].Remove(answer[i].Length - 1), tableNames[i]); 
             }
+
+
+            
+
         }
 
         private static List<string> Find(DataTable table , List<string> tableList)

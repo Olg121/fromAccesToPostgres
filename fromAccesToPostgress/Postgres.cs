@@ -14,19 +14,19 @@ namespace fromAccesToPostgress
     {
         static NpgsqlConnection npgSqlConnection;
         static string connectionString; 
-
+        
+        static string loginServer = "postgres";
+        static string passwordServer = "12qwasZX";
+        static string databaseName = "newBase"; 
         static public void DBCreate()
         {
-            string loginServer = "login";
-            string passwordServer = "password";
-            string databaseName = "name"; 
             Console.WriteLine("Server login    :");
-            loginServer = Console.ReadLine();
+          //  loginServer = Console.ReadLine();
             Console.WriteLine("Server password :");
-            passwordServer = Console.ReadLine();
+           // passwordServer = Console.ReadLine();
             Console.WriteLine("Database name   :");
-            databaseName = Console.ReadLine(); 
-            connectionString = "Server = localhost; Port = 5432; Username = " + loginServer + "; Password = " + passwordServer + "; Database = " + databaseName + ";";
+           // databaseName = Console.ReadLine(); 
+            connectionString = "Server = localhost; Port = 5432; Username = " + loginServer + "; Password = " + passwordServer;
 
 
             npgSqlConnection = new NpgsqlConnection(connectionString);
@@ -39,8 +39,10 @@ namespace fromAccesToPostgress
             {
                 npgSqlConnection = new NpgsqlConnection(connectionString);
                 NpgsqlCommand createDb = new NpgsqlCommand("create database " + databaseName + ";", npgSqlConnection);
+                
                 npgSqlConnection.Open();
                 createDb.ExecuteNonQuery();
+
                 npgSqlConnection.Close(); 
 
 
@@ -52,12 +54,24 @@ namespace fromAccesToPostgress
 
         }
 
-        static public void TableCreate(string tableName, string columns)
+        static public void TableCreate(string columns,string tableName)
         {
-            NpgsqlCommand createTbl = new NpgsqlCommand("create table " + tableName + " ( " + columns + ");", npgSqlConnection);
-            npgSqlConnection.Open();
-            createTbl.ExecuteNonQuery();
-            npgSqlConnection.Close();
+            // connectionString = "Server = localhost; Port = 5432; Username = " + loginServer + "; Password = " + passwordServer + "; Database=" + databaseName;
+            //  
+            NpgsqlConnectionStringBuilder sb = new NpgsqlConnectionStringBuilder();
+            sb.Host = "127.0.0.1";
+            sb.Port = 5432;
+            sb.Username = "postgres";
+            sb.Password = "12qwasZX";
+            sb.Database = "newBase";
+            //sb.Database = "newbase";
+            var con = new NpgsqlConnection(sb.ConnectionString);
+            con.Open();
+            NpgsqlCommand createTbl = new NpgsqlCommand("create table if not exists " + tableName + " (" + columns + ");", con);
+            
+           
+            var res =createTbl.ExecuteNonQuery();
+            con.Close();
         }
 
 

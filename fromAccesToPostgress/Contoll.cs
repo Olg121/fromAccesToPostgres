@@ -12,7 +12,7 @@ namespace fromAccesToPostgress
     {
         static void Main(string[] args)
         {
-            //Postgres.DBCreate(); 
+            Postgres.DBCreate(); 
             Access.AccessConnect();
         }
     }
