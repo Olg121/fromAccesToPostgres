@@ -17,19 +17,28 @@ namespace fromAccesToPostgress
         
         static string loginServer = "postgres";
         static string passwordServer = "12qwasZX";
-        static string databaseName = "newBase"; 
+        static string databaseName = "newbase";
+      
         static public void DBCreate()
         {
+
+            NpgsqlConnectionStringBuilder sb = new NpgsqlConnectionStringBuilder();
+            sb.Host = "127.0.0.1";
+            sb.Port = 5432;
+            sb.Username = "postgres";
+            sb.Password = "12qwasZX";
+            sb.Database = "newbase";
             Console.WriteLine("Server login    :");
           //  loginServer = Console.ReadLine();
             Console.WriteLine("Server password :");
            // passwordServer = Console.ReadLine();
             Console.WriteLine("Database name   :");
            // databaseName = Console.ReadLine(); 
-            connectionString = "Server = localhost; Port = 5432; Username = " + loginServer + "; Password = " + passwordServer;
+            connectionString = "Server = localhost; Port = 5432; Username = " + loginServer + " ; Password = " + passwordServer;
+            Console.WriteLine(sb.ToString()); 
 
+            npgSqlConnection = new NpgsqlConnection(sb.ToString()); 
 
-            npgSqlConnection = new NpgsqlConnection(connectionString);
             try
             {
                 npgSqlConnection.Open();
@@ -37,8 +46,9 @@ namespace fromAccesToPostgress
             }
             catch
             {
-                npgSqlConnection = new NpgsqlConnection(connectionString);
-                NpgsqlCommand createDb = new NpgsqlCommand("create database " + databaseName + ";", npgSqlConnection);
+                sb.Database = ""; 
+                npgSqlConnection = new NpgsqlConnection(sb.ToString());
+                NpgsqlCommand createDb = new NpgsqlCommand("CREATE DATABASE " + databaseName , npgSqlConnection);
                 
                 npgSqlConnection.Open();
                 createDb.ExecuteNonQuery();
@@ -63,7 +73,7 @@ namespace fromAccesToPostgress
             sb.Port = 5432;
             sb.Username = "postgres";
             sb.Password = "12qwasZX";
-            sb.Database = "newBase";
+            sb.Database = "newbase";
             //sb.Database = "newbase";
             var con = new NpgsqlConnection(sb.ConnectionString);
             con.Open();
@@ -72,6 +82,27 @@ namespace fromAccesToPostgress
            
             var res =createTbl.ExecuteNonQuery();
             con.Close();
+        }
+
+
+        static public void AddRecord(string tableName, string data, string types)
+        {
+
+            NpgsqlConnectionStringBuilder sb = new NpgsqlConnectionStringBuilder();
+            sb.Host = "127.0.0.1";
+            sb.Port = 5432;
+            sb.Username = "postgres";
+            sb.Password = "12qwasZX";
+            sb.Database = "newbase";
+            npgSqlConnection.ConnectionString = sb.ToString();
+
+            npgSqlConnection.Open();
+
+            NpgsqlCommand createRecord = new NpgsqlCommand("insert into " + tableName + " (" + types + ") values (" + data + " ); ", npgSqlConnection );
+            createRecord.ExecuteNonQuery();
+            npgSqlConnection.Close(); 
+
+            return; 
         }
 
 

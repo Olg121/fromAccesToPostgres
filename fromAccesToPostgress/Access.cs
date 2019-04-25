@@ -13,18 +13,24 @@ namespace fromAccesToPostgress
 {
     class Access
     {
-
+        class My_Stuct
+        {
+            public List<string> First;
+            public List<List<string>> Second; 
+        }
+        static string connectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=db.mdb;";
         public static void AccessConnect()
         {
+           List<List<string>> tableRows = new List<List<string>>();
             // Microsoft Access provider factory
             DbProviderFactory factory = DbProviderFactories.GetFactory("System.Data.OleDb");
             DbConnection connection = factory.CreateConnection();
             DataTable userTables = null;
-            DataTable table = null; 
-
+            DataTable table = null;
+            List<string> oneRow = new List<string>();
             using (connection) // ??? 
             {
-                connection.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;Data Source=db.mdb;"; // Строка подключения 
+                connection.ConnectionString = connectionString; // Строка подключения 
                 string[] restrictions = new string[4]; // параметры ограничения 
                 restrictions[3] = "Table"; // Только таблицы пользователя 
 
@@ -45,29 +51,78 @@ namespace fromAccesToPostgress
                 tableNames.Add(userTables.Rows[i][2].ToString());
 
 
-
+            My_Stuct returnAnswer = new My_Stuct(); 
             for (int i = 0; i < userTables.Rows.Count; i++)
                 if (userTables.Rows[i][2].ToString()[0] == 'T')
                     Console.WriteLine(userTables.Rows[i][2].ToString());
-            List<string> answer = Find(table , tableNames); // Вывод на экран
-           
-            for(int i = 0; i<tableNames.Count; i++)
+            returnAnswer = Find(table , tableNames); // Вывод на экран
+            List<string> answer = returnAnswer.First;
+            tableRows = returnAnswer.Second; 
+            for (int i = 0; i<tableNames.Count; i++)
             {
                 Postgres.TableCreate(answer[i].Remove(answer[i].Length - 1), tableNames[i]); 
             }
 
+            OleDbConnection myConnection;
+            string recordString = "";
+            string recordStringOfTypes = "";
+            string recordStringOfData = "";
+           
+            double buf; 
+            for (int i = 0; i < tableNames.Count; i++)
+            {
+                myConnection = new OleDbConnection(connectionString);
+                myConnection.Open();
+                string query = "SELECT * FROM " + tableNames[i];
 
-            
+                // создаем объект OleDbCommand для выполнения запроса к БД MS Access
+                OleDbCommand command = new OleDbCommand(query, myConnection);
+
+                OleDbDataReader reader = command.ExecuteReader(); 
+               
+                while(reader.Read())
+                {
+                    for (int j = 0; j < reader.FieldCount; j++)
+                    {
+                        if (reader[j].ToString() != "")
+                        {
+
+                            recordStringOfTypes += tableRows[i][j] + ","; 
+                            if (double.TryParse(reader[j].ToString(), out buf))
+                            {
+                                recordStringOfData += reader[j].ToString() + ","; 
+                            }
+                             else
+                            {
+                                recordStringOfData += @"'" + reader[j].ToString() + @"' " + ','; 
+                            }
+                            Console.WriteLine(reader[j]);
+                            Console.WriteLine(tableRows[i][j]);
+                        }
+                     }
+                    Console.WriteLine();
+                    Console.WriteLine();
+                    Console.WriteLine();
+
+                   // Postgres.AddRecord(tableNames[i], recordStringOfData.Remove(recordStringOfData.Length - 1), recordStringOfTypes.Remove(recordStringOfTypes.Length - 1)); 
+
+                }
+            }
 
         }
 
-        private static List<string> Find(DataTable table , List<string> tableList)
+
+        private static My_Stuct Find(DataTable table , List<string> tableList)
         {
+            List<List<string>> tableRows; 
+            List<string> oneRow = new List<string>(); 
             string text = null;
+            tableRows = new List<List<string>>(); 
             string convetedStringToPostgre = "";
             string curentTableName = null;
             List<string> answer = new List<string>(); 
             string lastTableName = "";
+            My_Stuct ans = new My_Stuct(); 
             int k = 0; 
             for(int i = 0; i<table.Rows.Count; i++)
             {
@@ -78,6 +133,8 @@ namespace fromAccesToPostgress
                     k++;
                     Console.WriteLine(k);
                     answer.Add(convetedStringToPostgre);
+                    tableRows.Add(new List<string>(oneRow)); 
+                    oneRow.Clear(); 
                     Console.WriteLine(lastTableName); 
                     Console.WriteLine(convetedStringToPostgre);
                     Console.WriteLine();
@@ -86,6 +143,7 @@ namespace fromAccesToPostgress
                 }
                 if (tableList.Contains(curentTableName)) 
                 {
+                    oneRow.Add(table.Rows[i][table.Columns[3]].ToString());
                    convetedStringToPostgre += table.Rows[i][table.Columns[3]].ToString() + ' ' + Converter(table.Rows[i][table.Columns[11]].ToString()) + ','; 
                    //  foreach (DataColumn col in table.Columns)
                    //    Console.WriteLine("{0} = {1}", col.ColumnName, table.Rows[i][col]);
@@ -96,8 +154,9 @@ namespace fromAccesToPostgress
                     continue;
                 lastTableName = curentTableName; 
              }
-
-            return answer;
+            ans.First = answer;
+            ans.Second = tableRows;
+            return ans;
             
         }
 
