@@ -85,10 +85,73 @@ namespace fromAccesToPostgress
         }
 
 
-        static public void AddRecord(string tableName, string data, string types)
+        static public void AddRecord(List<List<string>> querys, List<string> rows, string name)
         {
 
             NpgsqlConnectionStringBuilder sb = new NpgsqlConnectionStringBuilder();
+            sb.Host = "127.0.0.1";
+            sb.Port = 5432;
+            sb.Username = "postgres";
+            sb.Password = "12qwasZX";
+            sb.Database = "newbase";
+            string types;
+            string data; 
+            npgSqlConnection.ConnectionString = sb.ToString();
+            double buf; 
+            for (int i = 0; i<querys[0].Count; i++)
+            {
+                types = ""; 
+                data = ""; 
+                // string 
+                // int 
+                // double
+                // date
+
+                for (int j = 0; j<querys.Count; j++)
+                {
+                    if (querys[j][i].ToString() != "")
+                    {
+                        types += rows[j] + ",";
+                        if (double.TryParse(querys[j][i].ToString(), out buf) && !querys[j][i].ToString().Contains(" "))
+                        {
+                            data += querys[j][i].ToString() + ",";
+                        }
+                        else
+                        {
+                            data += "$$" + querys[j][i].ToString() + @"$$" + ',';
+                        }
+                    }
+                }
+
+               data = data.Remove(data.Length - 1);
+               types = types.Remove(types.Length - 1);
+
+                npgSqlConnection.Open();
+
+                NpgsqlCommand createRecord = new NpgsqlCommand("insert into " + name + " (" + types + ") values (" + data + " ); ", npgSqlConnection);
+                createRecord.ExecuteNonQuery(); 
+                npgSqlConnection.Close(); 
+               // Console.WriteLine(types);
+               // Console.WriteLine(data);
+
+               // Console.WriteLine(); 
+
+
+
+
+
+            }
+         
+            return; 
+        }
+
+        
+
+
+    }
+}
+/*
+ *    NpgsqlConnectionStringBuilder sb = new NpgsqlConnectionStringBuilder();
             sb.Host = "127.0.0.1";
             sb.Port = 5432;
             sb.Username = "postgres";
@@ -98,14 +161,7 @@ namespace fromAccesToPostgress
 
             npgSqlConnection.Open();
 
-            NpgsqlCommand createRecord = new NpgsqlCommand("insert into " + tableName + " (" + types + ") values (" + data + " ); ", npgSqlConnection );
+          //  NpgsqlCommand createRecord = new NpgsqlCommand("insert into " + tableName + " (" + types + ") values (" + data + " ); ", npgSqlConnection );
             createRecord.ExecuteNonQuery();
             npgSqlConnection.Close(); 
-
-            return; 
-        }
-
-
-
-    }
-}
+*/
